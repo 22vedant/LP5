@@ -1,2 +1,4 @@
 .ipynb_checkpoints
 *.exe
+*.csv
+*.h5
