@@ -47,37 +47,48 @@ void parallelBubbleSort(vector<int>& arr) {
     }
 }
 
-int main() {
-    const int SIZE = 10000;  // Try increasing for more visible effects
-    vector<int> originalArray(SIZE);
+void printArray(const vector<int>& arr) {
+    for (int val : arr) {
+        cout << val << " ";
+    }
+    cout << endl;
+}
 
-    // Initialize random array
-    srand(time(nullptr));
-    for (int i = 0; i < SIZE; i++) {
-        originalArray[i] = rand() % 100000;
+int main() {
+    omp_set_num_threads(4);  // Set OpenMP threads
+
+    int size = 1000;  // Larger size for benchmarking
+    vector<int> arr(size);
+
+    srand(time(0));
+    for (int i = 0; i < size; ++i) {
+        arr[i] = rand() % 100;
     }
 
-    // Create copies for both versions
-    vector<int> arrSerial = originalArray;
-    vector<int> arrParallel = originalArray;
+    // Make copies
+    vector<int> arr_serial = arr;
+    vector<int> arr_parallel = arr;
 
     // Serial sort timing
-    double startSerial = omp_get_wtime();
-    serialBubbleSort(arrSerial);
-    double endSerial = omp_get_wtime();
+    double start_serial = omp_get_wtime();
+    serialBubbleSort(arr_serial);
+    double end_serial = omp_get_wtime();
+    double time_serial = end_serial - start_serial;
 
     // Parallel sort timing
-    double startParallel = omp_get_wtime();
-    parallelBubbleSort(arrParallel);
-    double endParallel = omp_get_wtime();
+    double start_parallel = omp_get_wtime();
+    parallelBubbleSort(arr_parallel);
+    double end_parallel = omp_get_wtime();
+    double time_parallel = end_parallel - start_parallel;
 
     // Output results
-    cout << "Serial Bubble Sort Time:   " << (endSerial - startSerial) << " seconds\n";
-    cout << "Parallel Bubble Sort Time: " << (endParallel - startParallel) << " seconds\n";
+    cout << "Sorted array:\n";
+    printArray(arr_serial);  // or arr_parallel
 
-    // Optional: verify correctness
-    bool isEqual = (arrSerial == arrParallel);
-    cout << "Arrays sorted identically? " << (isEqual ? "Yes" : "No") << endl;
+    cout << "\n--- Timing Results ---\n";
+    cout << "Serial Bubble Sort Time:   " << time_serial << " seconds\n";
+    cout << "Parallel Bubble Sort Time: " << time_parallel << " seconds\n";
 
     return 0;
 }
+

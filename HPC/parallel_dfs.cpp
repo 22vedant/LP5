@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <omp.h>
-#include <atomic>
 using namespace std;
 
 class Graph {
@@ -20,14 +19,13 @@ public:
     }
 
     void parallelDFS(int start) {
-        vector<atomic<bool>> visited(V);
-        for (int i = 0; i < V; i++) visited[i] = false;
+        vector<bool> visited(V, false);
 
         cout << "DFS starting from node " << start << ": ";
 
         #pragma omp parallel
         {
-            #pragma omp single nowait
+            #pragma omp single
             {
                 dfsUtil(start, visited);
             }
@@ -37,15 +35,25 @@ public:
     }
 
 private:
-    void dfsUtil(int u, vector<atomic<bool>>& visited) {
-        if (visited[u].exchange(true)) return; // Already visited
+    void dfsUtil(int u, vector<bool>& visited) {
+        bool process = false;
 
+        // Only one thread should check and mark visited[u]
         #pragma omp critical
-        cout << u << " ";
+        {
+            if (!visited[u]) {
+                visited[u] = true;
+                process = true;
+                cout << u << " ";
+            }
+        }
+
+        if (!process) return;
 
         for (int v : adj[u]) {
-            if (!visited[v]) {
-                #pragma omp task
+            // Always create a task; inside the task, we'll check visited status
+            #pragma omp task
+            {
                 dfsUtil(v, visited);
             }
         }
@@ -64,7 +72,10 @@ int main() {
     g.addEdge(3, 5);
     g.addEdge(4, 5);
 
+    omp_set_num_threads(4); // Set based on available hardware
+
     g.parallelDFS(0);
 
     return 0;
 }
+
