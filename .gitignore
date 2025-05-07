@@ -1,2 +1,7 @@
 .ipynb_checkpoints
 *.exe
+*.csv
+*.h5
+*.jpg
+*.png
+*.jpeg
